@@ -1,11 +1,14 @@
 <?php
 
-require_once '../DatabaseManager.php';
+require_once __DIR__ . '/../model/DatabaseManager.php';
+require_once __DIR__ . '/../model/User.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
   if (isset($_GET['id'])) {
+
     getUserById($_GET['id']);
   } else {
+
     getAllUsers();
   }
 } else if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -13,48 +16,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
   $rawData = file_get_contents('php://input');
   $data = json_decode($rawData, true);
 
-  if (
-    isset($data['user']) && !empty($data['user']) &&
-    isset($data['password']) && !empty($data['password']) &&
-    isset($data['name']) && !empty($data['name']) &&
-    isset($data['phone']) && !empty($data['phone']) &&
-    isset($data['email']) && !empty($data['email'])
-  ) {
-    insertUser($data);
-  } else {
-    http_response_code(400);
-    echo json_encode(['error' => 'Missing or empty required fields.']);
-  }
-} else if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-  if (isset($_GET['id'])) {
+  $user = new User();
+  $user->setUsername($data['user']);
+  $user->setName($data['name']);
+  $user->setPassword($data['password']);
+  $user->setPhone($data['phone']);
+  $user->setEmail($data['email']);
 
-    $rawData = file_get_contents('php://input');
-    $data = json_decode($rawData, true);
-    $id = $_GET['id'];
-    if (
-      isset($data['password']) && !empty($data['password']) &&
-      isset($data['name']) && !empty($data['name']) &&
-      isset($data['phone']) && !empty($data['phone']) &&
-      isset($data['email']) && !empty($data['email'])
-    ) {
-      updateUser($id, $data);
-    } else {
-      http_response_code(400);
-      echo json_encode(['error' => 'Missing or empty required fields.']);
-    }
-  }
+  insertUser($user);
+} else if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+
+  $rawData = file_get_contents('php://input');
+  $data = json_decode($rawData, true);
+
+  $user = new User();
+  $user->setUsername($data['user']);
+  $user->setName($data['name']);
+  $user->setPassword($data['password']);
+  $user->setPhone($data['phone']);
+  $user->setEmail($data['email']);
+
+  updateUser($_GET['id'], $user);
 } else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+
   deleteUser($_GET['id']);
 }
-
 
 function getAllUsers()
 {
   try {
+
     $db = new DatabaseManager();
 
+    http_response_code(200);
     echo json_encode($db->getUsers());
   } catch (Exception $e) {
+
+    http_response_code(500);
     echo json_encode($e);
   }
 }
@@ -62,10 +60,14 @@ function getAllUsers()
 function getUserById($id)
 {
   try {
+
     $db = new DatabaseManager();
 
+    http_response_code(200);
     echo json_encode($db->getUserbyId($id));
   } catch (Exception $e) {
+
+    http_response_code(500);
     echo json_encode($e);
   }
 }
@@ -73,11 +75,15 @@ function getUserById($id)
 function insertUser($user)
 {
   try {
-    $db = new DatabaseManager();
-    $db->insertData($user);
 
+    $db = new DatabaseManager();
+    $db->insertUser($user);
+
+    http_response_code(200);
     echo json_encode(['message' => 'User created successfully.']);
   } catch (Exception $e) {
+
+    http_response_code(500);
     echo json_encode($e);
   }
 }
@@ -85,9 +91,15 @@ function insertUser($user)
 function deleteUser($id)
 {
   try {
+
     $db = new DatabaseManager();
-    $db->deleteData($id);
+    $db->deleteUser($id);
+
+    http_response_code(200);
+    echo json_encode(['message' => 'User deleted successfully.']);
   } catch (Exception $e) {
+
+    http_response_code(500);
     echo json_encode($e);
   }
 }
@@ -95,9 +107,15 @@ function deleteUser($id)
 function updateUser($id, $array)
 {
   try {
+
     $db = new DatabaseManager();
     $db->updateUser($id, $array);
+
+    http_response_code(200);
+    echo json_encode(['message' => 'User created successfully.']);
   } catch (Exception $e) {
+
+    http_response_code(500);
     echo json_encode($e);
   }
 }

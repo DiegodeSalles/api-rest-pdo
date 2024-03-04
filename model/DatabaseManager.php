@@ -1,6 +1,7 @@
 <?php
 
 require_once 'ConnectionDao.php';
+require_once 'User.php';
 
 class DatabaseManager
 {
@@ -15,16 +16,17 @@ class DatabaseManager
       echo $e->getMessage();
     }
   }
-  public function insertData($array)
+
+  public function insertUser(User $user)
   {
     try {
 
       $stmt = $this->conn->prepare('INSERT INTO users (name, email, phone, user, password) VALUES (:name, :email, :phone, :user, :password)');
-      $stmt->bindParam(':name', $array['name']);
-      $stmt->bindParam(':email', $array['email']);
-      $stmt->bindParam(':phone', $array['phone']);
-      $stmt->bindParam(':user', $array['user']);
-      $stmt->bindParam(':password', $array['password']);
+      $stmt->bindParam(':name', $user->getName());
+      $stmt->bindParam(':email', $user->getEmail());
+      $stmt->bindParam(':phone', $user->getPhone());
+      $stmt->bindParam(':user', $user->getUsername());
+      $stmt->bindParam(':password', $user->getPassword());
 
       $stmt->execute();
     } catch (PDOException $e) {
@@ -34,7 +36,7 @@ class DatabaseManager
     }
   }
 
-  public function deleteData($id)
+  public function deleteUser($id)
   {
     try {
       $stmt = $this->conn->prepare('DELETE FROM users WHERE id = :id');
@@ -80,17 +82,17 @@ class DatabaseManager
     }
   }
 
-  public function updateUser($id, $array)
+  public function updateUser($id, User $user)
   {
     try {
       $stmt = $this->conn->prepare("UPDATE users SET password=
        :password, name = :name, email = :email, phone = :phone WHERE id = :id");
 
       $stmt->bindParam(':id', $id);
-      $stmt->bindParam(':password', $array['password']);
-      $stmt->bindParam(':name', $array['name']);
-      $stmt->bindParam(':email', $array['email']);
-      $stmt->bindParam(':phone', $array['phone']);
+      $stmt->bindParam(':password', $user->getPassword());
+      $stmt->bindParam(':name', $user->getName());
+      $stmt->bindParam(':email', $user->getEmail());
+      $stmt->bindParam(':phone', $user->getPhone());
 
       $stmt->execute();
     } catch (PDOException $e) {
