@@ -30,13 +30,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
   $data = json_decode($rawData, true);
 
   $user = new User();
+  $user->setId($_GET['id']);
   $user->setUsername($data['user']);
   $user->setName($data['name']);
   $user->setPassword($data['password']);
   $user->setPhone($data['phone']);
   $user->setEmail($data['email']);
 
-  updateUser($_GET['id'], $user);
+  updateUser($user);
 } else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
 
   deleteUser($_GET['id']);
@@ -104,12 +105,12 @@ function deleteUser($id)
   }
 }
 
-function updateUser($id, $array)
+function updateUser($user)
 {
   try {
 
     $db = new DatabaseManager();
-    $db->updateUser($id, $array);
+    $db->updateUser($user);
 
     http_response_code(200);
     echo json_encode(['message' => 'User created successfully.']);

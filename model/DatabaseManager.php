@@ -82,13 +82,13 @@ class DatabaseManager
     }
   }
 
-  public function updateUser($id, User $user)
+  public function updateUser(User $user)
   {
     try {
       $stmt = $this->conn->prepare("UPDATE users SET password=
        :password, name = :name, email = :email, phone = :phone WHERE id = :id");
 
-      $stmt->bindParam(':id', $id);
+      $stmt->bindParam(':id', $user->getId());
       $stmt->bindParam(':password', $user->getPassword());
       $stmt->bindParam(':name', $user->getName());
       $stmt->bindParam(':email', $user->getEmail());
