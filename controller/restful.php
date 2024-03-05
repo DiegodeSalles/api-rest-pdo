@@ -1,7 +1,50 @@
 <?php
 
+require_once __DIR__ . '/../model/ConnectionDao.php';
 require_once __DIR__ . '/../model/DatabaseManager.php';
 require_once __DIR__ . '/../model/User.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Dotenv\Dotenv;
+use Firebase\JWT\JWT;
+
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../model');
+$dotenv->load();
+
+function validateUser($data)
+{
+  $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
+
+  $user = new User();
+  $user->setUsername($data['user']);
+  $user->setPassword($data['password']);
+  
+  
+
+  $pdo = ConnectionDao::getConnection();
+  $prepare = $pdo->prepare('SELECT * from users where user = :user and password = :password');
+  $prepare->bindParam(':user', $data['user']);
+  $prepare->bindParam(':password', $data['password']);
+  $prepare->execute();
+  $userFound = $prepare->fetch(PDO::FETCH_ASSOC);
+
+  if (!$userFound || !password_verify($user->getPassword(), $passwordHash)) {
+    http_response_code(401);
+  }
+
+  $payload = [
+    'exp' => time() + 10,
+    'iat' => time(),
+    'name' => $userFound['name'],
+    'user' => $userFound['user'],
+    'email' => $userFound['email'],
+    'logged_in' => true
+  ];
+
+  $encode = JWT::encode($payload, $_ENV['KEY'], 'HS256');
+
+  return $encode;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
   if (isset($_GET['id'])) {
@@ -11,20 +54,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     getAllUsers();
   }
-} else if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+} 
+else if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   $rawData = file_get_contents('php://input');
   $data = json_decode($rawData, true);
 
   $user = new User();
   $user->setUsername($data['user']);
-  $user->setName($data['name']);
+  // $user->setName($data['name']);
   $user->setPassword($data['password']);
-  $user->setPhone($data['phone']);
-  $user->setEmail($data['email']);
+  // $user->setPhone($data['phone']);
+  // $user->setEmail($data['email']);
 
-  insertUser($user);
-} else if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+  // insertUser($user);
+  echo validateUser($data);
+} 
+else if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
 
   $rawData = file_get_contents('php://input');
   $data = json_decode($rawData, true);
